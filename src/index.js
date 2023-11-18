@@ -1,11 +1,16 @@
-import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
+import {
+  fetchBreeds,
+  fetchCatByBreed,
+  showLoader,
+  hideLoader,
+  handleError,
+} from './cat-api.js';
 
 document.addEventListener('DOMContentLoaded', function () {
   const elements = {
     breedSelect: document.querySelector('.breed-select'),
     catInfo: document.querySelector('.cat-info'),
     loader: document.querySelector('.loader'),
-    error: document.querySelector('.error'),
   };
 
   const slimSelect = new SlimSelect({
@@ -17,56 +22,46 @@ document.addEventListener('DOMContentLoaded', function () {
     searchHighlight: true,
     searchFocus: true,
     allowDeselect: false,
-    onChange: function () {
-      handleBreedSelectChange();
-    },
+    onChange: handleBreedSelectChange,
   });
 
   elements.breedSelect.addEventListener('change', handleBreedSelectChange);
 
+  let errorDisplayed = false;
+
   function handleBreedSelectChange() {
     const selectedBreedId = slimSelect.selected();
 
-    showLoader();
+    if (selectedBreedId) {
+      showLoader();
+    }
 
     fetchCatByBreed(selectedBreedId)
       .then(displayCatInfo)
-      .catch(handleError)
-      .finally(hideLoader);
+      .catch(error => handleError(error, errorDisplayed))
+      .finally(() => {
+        if (selectedBreedId) {
+          hideLoader();
+        }
+      });
   }
 
   function displayCatInfo(catData) {
     elements.catInfo.innerHTML = createMarkup(catData);
   }
 
-  function showLoader() {
-    elements.loader.classList.add('loading');
-  }
-
-  function hideLoader() {
-    elements.loader.classList.remove('loading');
-  }
-
-  function showError() {
-    elements.error.classList.add('visible');
-  }
-
-  function hideError() {
-    elements.error.classList.remove('visible');
-  }
-
-  function handleError(error) {
-    console.error(error);
-    showError();
-  }
-
   function serviceCatSearch() {
-    hideError();
+    hideLoader();
+    errorDisplayed = false;
+
     showLoader();
+
     return fetchBreeds()
       .then(displayBreeds)
-      .catch(handleError)
-      .finally(hideLoader);
+      .catch(error => handleError(error, errorDisplayed))
+      .finally(() => {
+        hideLoader();
+      });
   }
 
   function displayBreeds(data) {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import iziToast from 'izitoast';
 
 const BASE_URL = 'https://api.thecatapi.com/v1/breeds';
 const API_KEY =
@@ -6,6 +7,7 @@ const API_KEY =
 
 axios.defaults.headers.common['x-api-key'] = API_KEY;
 
+let errorDisplayed = false;
 export function fetchBreeds() {
   showLoader();
 
@@ -16,8 +18,7 @@ export function fetchBreeds() {
       return response.data;
     })
     .catch(error => {
-      showError();
-      console.error('Error fetching cat breeds:', error);
+      handleError(error);
       throw error;
     });
 }
@@ -37,28 +38,34 @@ export function fetchCatByBreed(breedId) {
       return response.data;
     })
     .catch(error => {
-      showError();
-      console.error('Error fetching cat data by breed:', error);
+      handleError(error);
       throw error;
     });
 }
 
-function showLoader() {
+export function showLoader() {
   const loader = document.querySelector('.loader');
-  loader.classList.add('visible');
+  loader.style.display = 'block';
 }
 
-function hideLoader() {
+export function hideLoader() {
   const loader = document.querySelector('.loader');
-  loader.classList.remove('visible');
+  loader.style.display = 'none';
 }
 
-function showError() {
-  const errorElement = document.querySelector('.error');
-  errorElement.classList.add('visible');
+export function handleError(error) {
+  console.error('Error:', error);
+
+  if (!errorDisplayed) {
+    showError('Oops! Something went wrong! Try reloading the page!');
+    errorDisplayed = true;
+  }
 }
 
-function hideError() {
-  const errorElement = document.querySelector('.error');
-  errorElement.classList.remove('visible');
+function showError(message) {
+  iziToast.error({
+    title: 'Error',
+    message: message,
+    position: 'topRight',
+  });
 }

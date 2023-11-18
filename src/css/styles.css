@@ -1,12 +1,10 @@
 .visible {
-  display: block !important;
-
+  display: block;
 }
 
 .loader,
 .error {
   display: none;
-
 }
 
 .cat-info {

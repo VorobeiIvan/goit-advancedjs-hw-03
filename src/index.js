@@ -1,10 +1,5 @@
-import {
-  fetchBreeds,
-  fetchCatByBreed,
-  showLoader,
-  hideLoader,
-  handleError,
-} from './cat-api.js';
+import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
+import iziToast from 'izitoast';
 
 document.addEventListener('DOMContentLoaded', function () {
   const elements = {
@@ -25,10 +20,6 @@ document.addEventListener('DOMContentLoaded', function () {
     onChange: handleBreedSelectChange,
   });
 
-  elements.breedSelect.addEventListener('change', handleBreedSelectChange);
-
-  let errorDisplayed = false;
-
   function handleBreedSelectChange() {
     const selectedBreedId = slimSelect.selected();
 
@@ -38,10 +29,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     fetchCatByBreed(selectedBreedId)
       .then(displayCatInfo)
-      .catch(error => handleError(error, errorDisplayed))
+      .catch(error => handleError(error))
       .finally(() => {
         if (selectedBreedId) {
           hideLoader();
+          showSlimSelect();
         }
       });
   }
@@ -51,29 +43,18 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function serviceCatSearch() {
-    hideLoader();
-    errorDisplayed = false;
-
     showLoader();
 
     return fetchBreeds()
       .then(displayBreeds)
-      .catch(error => handleError(error, errorDisplayed))
+      .catch(error => handleError(error))
       .finally(() => {
         hideLoader();
+        showSlimSelect();
       });
   }
 
   function displayBreeds(data) {
-    console.log(data);
-    elements.breedSelect.innerHTML = '';
-    data.forEach(catBreed => {
-      const option = document.createElement('option');
-      option.value = catBreed.id;
-      option.textContent = catBreed.name;
-      elements.breedSelect.appendChild(option);
-    });
-
     slimSelect.setData(
       data.map(catBreed => ({ text: catBreed.name, value: catBreed.id }))
     );
@@ -94,6 +75,33 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
       })
       .join('');
+  }
+
+  function showLoader() {
+    const loader = document.querySelector('.loader');
+    loader.style.display = 'block';
+  }
+
+  function hideLoader() {
+    const loader = document.querySelector('.loader');
+    loader.style.display = 'none';
+  }
+
+  function showSlimSelect() {
+    slimSelect.slim.container.style.display = 'block';
+  }
+
+  function handleError(error) {
+    console.error('Error:', error);
+    showError('Oops! Something went wrong! Try reloading the page!');
+  }
+
+  function showError(message) {
+    iziToast.error({
+      title: 'Error',
+      message: message,
+      position: 'topRight',
+    });
   }
 
   serviceCatSearch();

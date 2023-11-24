@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', function () {
     onChange: handleBreedSelectChange,
   });
 
+  function displayCatInfo(catData) {
+    elements.catInfo.innerHTML = createMarkup(catData);
+  }
+
   function handleBreedSelectChange() {
     const selectedBreedId = slimSelect.selected();
 
@@ -28,7 +32,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     fetchCatByBreed(selectedBreedId)
-      .then(displayCatInfo)
+      .then(catData => {
+        if (catData && catData.length > 0) {
+          displayCatInfo(catData);
+        } else {
+          showError('No cat data received or empty array!');
+        }
+      })
       .catch(error => handleError(error))
       .finally(() => {
         if (selectedBreedId) {
@@ -38,15 +48,17 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  function displayCatInfo(catData) {
-    elements.catInfo.innerHTML = createMarkup(catData);
-  }
-
   function serviceCatSearch() {
     showLoader();
 
     return fetchBreeds()
-      .then(displayBreeds)
+      .then(data => {
+        if (data && data.length > 0) {
+          displayBreeds(data);
+        } else {
+          showError('No cat breeds received or empty array!');
+        }
+      })
       .catch(error => handleError(error))
       .finally(() => {
         hideLoader();
@@ -78,13 +90,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function showLoader() {
-    const loader = document.querySelector('.loader');
-    loader.style.display = 'block';
+    elements.loader.style.display = 'block';
   }
 
   function hideLoader() {
-    const loader = document.querySelector('.loader');
-    loader.style.display = 'none';
+    elements.loader.style.display = 'none';
   }
 
   function showSlimSelect() {
